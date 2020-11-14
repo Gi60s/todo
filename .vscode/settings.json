@@ -1,0 +1,6 @@
+{
+  "mochaExplorer.files": "dist/test/**/*.js",
+  "mochaExplorer.require": "source-map-support/register",
+  "mochaExplorer.debuggerConfig": "Run Tests",
+  "mochaExplorer.debuggerPort": 9339
+}

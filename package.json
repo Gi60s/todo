@@ -1,0 +1,39 @@
+{
+  "name": "todo-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc --build ./tsconfig.json",
+    "dev": "tsc --build ./tsconfig.json -w",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/bcrypt": "^3.0.0",
+    "@types/chai": "^4.2.14",
+    "@types/jsonwebtoken": "^8.5.0",
+    "@types/mocha": "^8.0.3",
+    "@types/pg": "^7.14.5",
+    "@types/supertest": "^2.0.10",
+    "@types/uuid": "^8.3.0",
+    "bcrypt": "^5.0.0",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "openapi-enforcer": "^1.11.2",
+    "openapi-enforcer-middleware": "^2.0.0-alpha-4",
+    "pg": "^8.4.2",
+    "uuid": "^8.3.1"
+  },
+  "devDependencies": {
+    "@tsconfig/node14": "^1.0.0",
+    "chai": "^4.2.0",
+    "mocha": "^8.2.1",
+    "source-map-support": "^0.5.19",
+    "supertest": "^6.0.0",
+    "typescript": "^4.0.5"
+  }
+}
