@@ -1,9 +1,11 @@
-export default function (): {
-    createTask(req: Express.Request, res: Express.Response): void;
-    deleteTask(req: Express.Request, res: Express.Response): void;
-    deleteFile(req: Express.Request, res: Express.Response): void;
-    getTasks(req: Express.Request, res: Express.Response): void;
-    getFile(req: Express.Request, res: Express.Response): void;
-    updateTask(req: Express.Request, res: Express.Response): void;
-    uploadFile(req: Express.Request, res: Express.Response): void;
+import Express from 'express-serve-static-core';
+import { DatabaseController } from '../db';
+export default function (db: DatabaseController): {
+    createTask(req: Express.Request, res: Express.Response): Promise<void>;
+    deleteTask(req: Express.Request, res: Express.Response): Promise<void>;
+    deleteFile(req: Express.Request, res: Express.Response): Promise<void>;
+    getTasks(req: Express.Request, res: Express.Response): Promise<void>;
+    getFile(req: Express.Request, res: Express.Response): Promise<void>;
+    updateTask(req: Express.Request, res: Express.Response): Promise<void>;
+    uploadFile(req: Express.Request, res: Express.Response): Promise<void>;
 };

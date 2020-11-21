@@ -35,4 +35,5 @@ declare global {
     }
 }
 export declare function AppFactory(options?: AppOptions): AppObject;
+export declare function getDefaultOptions(options: any): AppOptions;
 export {};

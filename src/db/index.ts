@@ -1,10 +1,12 @@
 import { Pool, PoolClient } from "pg"
 import { AccountFactory, AccountController } from './accounts'
+import { FileFactory, FileController } from './files'
 import { TaskListController, TaskListFactory } from './task-lists'
 import { TaskController, TaskFactory } from './tasks'
 
 export interface DatabaseController {
   accounts: AccountController
+  files: FileController
   taskLists: TaskListController
   tasks: TaskController
   transaction<T> (client: PoolClient, callback: TransactionCallback<T>): Promise<T>
@@ -40,6 +42,7 @@ export default function (db: Pool) {
   // @ts-ignore
   const context: DatabaseController = {}
   context.accounts = AccountFactory(db, context)
+  context.files = FileFactory(db, context)
   context.taskLists = TaskListFactory(db, context)
   context.tasks = TaskFactory(db, context)
   context.transaction = transaction

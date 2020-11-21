@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.AppFactory = void 0;
+exports.getDefaultOptions = exports.AppFactory = void 0;
 const openapi_enforcer_1 = __importDefault(require("openapi-enforcer"));
 const dotenv_1 = require("dotenv");
 dotenv_1.config();
@@ -131,4 +131,5 @@ function getDefaultOptions(options) {
         options.server.port = parseInt(env.SERVER_PORT);
     return options;
 }
+exports.getDefaultOptions = getDefaultOptions;
 //# sourceMappingURL=app.js.map

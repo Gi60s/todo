@@ -29,20 +29,14 @@ function AccountFactory(db, controller) {
     async function deleteAccount(username) {
         const account = await getAccount(username);
         if (account) {
-            const client = await db.connect();
-            try {
-                await client.query('BEGIN');
-                await client.query({
+            await controller.transaction(null, async (conn) => {
+                await conn.query({
                     name: 'account-delete',
                     text: 'DELETE FROM accounts WHERE username = $1',
                     values: [username]
                 });
-                await client.query('COMMIT');
-            }
-            catch (err) {
-                client.query('ROLLBACK');
-                throw err;
-            }
+                await controller.taskLists.deleteTaskLists(conn, account.id);
+            });
         }
     }
     async function getAccount(username) {

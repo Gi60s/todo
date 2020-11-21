@@ -158,7 +158,7 @@ export function AppFactory (options?: AppOptions): AppObject {
   }
 }
 
-function getDefaultOptions (options: any): AppOptions {
+export function getDefaultOptions (options: any): AppOptions {
   const env = process.env
 
   if (!options) options = {}

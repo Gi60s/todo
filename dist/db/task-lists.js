@@ -3,16 +3,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TaskListFactory = void 0;
 const util_1 = require("../util");
 function TaskListFactory(db, controller) {
-    async function createTaskList(name) {
+    async function createTaskList(accountId, name) {
         if (name.length === 0)
             throw new util_1.StatusError('Task list name cannot be blank', 400);
         const id = util_1.getUuid();
         const { rowCount } = await db.query({
             name: 'task-list-create',
-            text: 'INSERT INTO task_lists (id, name) VALUES ($1, $2)',
-            values: [id, name]
+            text: 'INSERT INTO task_lists (id, account_id, name) VALUES ($1, $2, $3)',
+            values: [id, accountId, name]
         });
-        return rowCount > 0 ? { id, name } : null;
+        return rowCount > 0 ? { id, accountId, name } : null;
     }
     async function getTaskLists(accountId) {
         const { rows } = await db.query({
@@ -21,7 +21,7 @@ function TaskListFactory(db, controller) {
             values: [accountId]
         });
         return rows.map(r => {
-            return { id: r.id, name: r.name };
+            return { id: r.id, accountId, name: r.name };
         });
     }
     async function getTaskListDetails(taskListId) {
@@ -36,6 +36,7 @@ function TaskListFactory(db, controller) {
             return null;
         return {
             id: taskListId,
+            accountId: rows[0].account_id,
             name: rows[0].name,
             tasks: rows.map(r => {
                 return {
@@ -48,27 +49,38 @@ function TaskListFactory(db, controller) {
         };
     }
     async function renameTaskList(taskListId, name) {
-        const { rowCount } = await db.query({
+        const { rows, rowCount } = await db.query({
             name: 'task-list-rename',
-            text: 'UPDATE task_lists SET name = $1 WHERE id = $2',
-            values: [taskListId, name]
+            text: 'UPDATE task_lists SET name = $1 WHERE id = $2 RETURNING *',
+            values: [name, taskListId]
         });
-        return rowCount ? { id: taskListId, name } : null;
+        return rows.length ? { id: taskListId, accountId: rows[0].account_id, name } : null;
     }
-    async function deleteTaskList(taskListId, client) {
-        const conn = client ? client : db;
-        await conn.query({
+    async function deleteTaskList(taskListId) {
+        await db.query({
             name: 'delete-task-list',
             text: 'DELETE from task_lists WHERE id = $1',
             values: [taskListId]
         });
+    }
+    async function deleteTaskLists(client, accountId) {
+        const { rows } = await client.query({
+            name: 'delete-task-lists',
+            text: 'DELETE from task_lists WHERE account_id = $1 RETURNING *',
+            values: [accountId]
+        });
+        const length = rows.length;
+        for (let i = 0; i < length; i++) {
+            await controller.tasks.deleteTasks(client, rows[i].id);
+        }
     }
     return {
         createTaskList,
         getTaskLists,
         getTaskListDetails,
         renameTaskList,
-        deleteTaskList
+        deleteTaskList,
+        deleteTaskLists
     };
 }
 exports.TaskListFactory = TaskListFactory;

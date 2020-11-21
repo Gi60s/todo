@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const accounts_1 = require("./accounts");
+const files_1 = require("./files");
 const task_lists_1 = require("./task-lists");
 const tasks_1 = require("./tasks");
 function default_1(db) {
@@ -27,8 +28,10 @@ function default_1(db) {
     }
     const context = {};
     context.accounts = accounts_1.AccountFactory(db, context);
+    context.files = files_1.FileFactory(db, context);
     context.taskLists = task_lists_1.TaskListFactory(db, context);
     context.tasks = tasks_1.TaskFactory(db, context);
+    context.transaction = transaction;
     return context;
 }
 exports.default = default_1;

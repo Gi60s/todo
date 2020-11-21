@@ -33,8 +33,8 @@ CREATE TABLE "tasks" (
   "id" character(32) NOT NULL,
   "task_list_id" character(32) NOT NULL,
   "description" text NOT NULL,
-  "due" timestamptz,
-  "completed" timestamptz,
+  "due" timestamptz NULL,
+  "completed" timestamptz NULL,
   PRIMARY KEY ("id")
 );
 
@@ -62,4 +62,4 @@ CREATE INDEX "task_lists_account_id" ON "task_lists" ("account_id");
 -- Test database
 --------------------------------
 
-CREATE DATABASE test WITH TEMPLATE (SELECT current_database())
+CREATE DATABASE test WITH TEMPLATE todo;

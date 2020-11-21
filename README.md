@@ -23,5 +23,10 @@
 1. Databases and init.sql
 1. Database controllers
 1. Cookies, Sessions, PassportJS, JWT
+    - Custom middleware for auth
 1. Postman and testing
 1. Working session? Work on controllers and API endpoints?
+
+
+Where to put:
+- Unit testing, integration testing, and E2E testing

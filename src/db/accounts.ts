@@ -47,7 +47,7 @@ export function AccountFactory (db: Pool, controller: DatabaseController): Accou
           values: [ username ]
         })
 
-        await controller.taskLists.deleteTaskLists(account.id, conn)
+        await controller.taskLists.deleteTaskLists(conn, account.id)
       })
     }
   }

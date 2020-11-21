@@ -5,6 +5,7 @@ import { TaskObject } from './tasks'
 
 interface TaskListObject {
   id: string
+  accountId: string
   name: string
 }
 
@@ -13,7 +14,7 @@ interface TaskListDetailedObject extends TaskListObject {
 }
 
 export interface TaskListController {
-  createTaskList (name: string): Promise<TaskListObject|null>
+  createTaskList (accountId: string, name: string): Promise<TaskListObject|null>
   getTaskLists (userId: string): Promise<Array<TaskListObject>>
   getTaskListDetails (taskListId: string): Promise<TaskListDetailedObject|null>
   renameTaskList (taskListId: string, name: string): Promise<TaskListObject|null>
@@ -23,17 +24,17 @@ export interface TaskListController {
 
 export function TaskListFactory (db: Pool, controller: DatabaseController): TaskListController {
 
-  async function createTaskList (name: string): Promise<TaskListObject|null> {
+  async function createTaskList (accountId: string, name: string): Promise<TaskListObject|null> {
     if (name.length === 0) throw new StatusError('Task list name cannot be blank', 400)
     
     const id = getUuid()
     const { rowCount } = await db.query({
       name: 'task-list-create',
-      text: 'INSERT INTO task_lists (id, name) VALUES ($1, $2)',
-      values: [ id, name ]
+      text: 'INSERT INTO task_lists (id, account_id, name) VALUES ($1, $2, $3)',
+      values: [ id, accountId, name ]
     })
 
-    return rowCount > 0 ? { id, name } : null
+    return rowCount > 0 ? { id, accountId, name } : null
   }
 
   async function getTaskLists (accountId: string): Promise<Array<TaskListObject>> {
@@ -44,7 +45,7 @@ export function TaskListFactory (db: Pool, controller: DatabaseController): Task
     })
 
     return rows.map(r => {
-      return { id: r.id, name: r.name }
+      return { id: r.id, accountId, name: r.name }
     })
   }
 
@@ -61,6 +62,7 @@ export function TaskListFactory (db: Pool, controller: DatabaseController): Task
 
     return {
       id: taskListId,
+      accountId: rows[0].account_id,
       name: rows[0].name,
       tasks: rows.map(r => {
         return {
@@ -74,13 +76,13 @@ export function TaskListFactory (db: Pool, controller: DatabaseController): Task
   }
 
   async function renameTaskList (taskListId: string, name: string): Promise<TaskListObject|null> {
-    const { rowCount } = await db.query({
+    const { rows, rowCount } = await db.query({
       name: 'task-list-rename',
-      text: 'UPDATE task_lists SET name = $1 WHERE id = $2',
-      values: [ taskListId, name ]
+      text: 'UPDATE task_lists SET name = $1 WHERE id = $2 RETURNING *',
+      values: [ name, taskListId ]
     })
 
-    return rowCount ? { id: taskListId, name } : null
+    return rows.length ? { id: taskListId, accountId: rows[0].account_id, name } : null
   }
 
   async function deleteTaskList (taskListId: string): Promise<void> {

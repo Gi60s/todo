@@ -3,6 +3,16 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.TaskFactory = void 0;
 const util_1 = require("../util");
 function TaskFactory(db, controller) {
+    async function checkAccess(accountId, taskId) {
+        const { rows } = await db.query({
+            name: 'has-task-access',
+            text: 'SELECT L.account_id as "account_id" FROM tasks T INNER JOIN task_lists L ON T.task_list_id = L.id WHERE T.id = $1',
+            values: [taskId]
+        });
+        return rows.length > 0
+            ? { exists: true, access: rows[0].account_id === accountId }
+            : { exists: false, access: false };
+    }
     async function createTask(taskListId, task) {
         const id = util_1.getUuid();
         const { rows } = await db.query({
@@ -20,23 +30,45 @@ function TaskFactory(db, controller) {
         };
     }
     async function deleteTask(taskId) {
-        await db.query({
-            name: 'delete-tasks',
-            text: 'DELETE FROM tasks WHERE id = $1',
-            values: [taskId]
+        return controller.transaction(null, async (conn) => {
+            await db.query({
+                name: 'delete-tasks',
+                text: 'DELETE FROM tasks WHERE id = $1',
+                values: [taskId]
+            });
+            await controller.files.deleteFiles(conn, taskId);
         });
     }
     async function deleteTasks(conn, taskListId) {
-        await conn.query({
-            name: 'delete-tasklist-tasks',
-            text: 'DELETE FROM tasks WHERE task_list_id = $1',
-            values: [taskListId]
+        return controller.transaction(conn, async (conn) => {
+            const { rows } = await conn.query({
+                name: 'delete-tasklist-tasks',
+                text: 'DELETE FROM tasks WHERE task_list_id = $1 RETURNING *',
+                values: [taskListId]
+            });
+            const length = rows.length;
+            if (length) {
+                for (let i = 0; i < length; i++) {
+                    await controller.files.deleteFiles(conn, rows[0].id);
+                }
+            }
         });
     }
     async function getTask(taskId) {
         const { rows } = await db.query({
             name: 'get-task',
-            text: 'SELECT * FROM tasks as T, files as F WHERE T.id = $1 AND T.id = F.task_id',
+            text: `SELECT 
+          T.id as "task_id",
+          task_list_id, 
+          description, 
+          due, 
+          completed, 
+          F.id as "file_id", 
+          F.name as "file_name", 
+          file_path 
+        FROM tasks T 
+        LEFT JOIN files F ON T.id = F.task_id
+        WHERE T.id = $1`,
             values: [taskId]
         });
         return formatTasks(rows)[0] || null;
@@ -44,20 +76,32 @@ function TaskFactory(db, controller) {
     async function getTasks(taskListId) {
         const { rows } = await db.query({
             name: 'get-tasks',
-            text: 'SELECT * FROM tasks as T, files as F WHERE T.task_list_id = $1 AND T.id = F.task_id',
+            text: `SELECT 
+          T.id as "task_id",
+          task_list_id, 
+          description, 
+          due, 
+          completed, 
+          F.id as "file_id", 
+          F.name as "file_name", 
+          file_path 
+        FROM tasks T 
+        LEFT JOIN files F ON T.id = F.task_id
+        WHERE T.task_list_id = $1`,
             values: [taskListId]
         });
         return formatTasks(rows);
     }
-    async function setTask(task) {
-        await db.query({
+    async function setTask(taskId, task) {
+        const { rows } = await db.query({
             name: 'set-task',
-            text: 'UPDATE tasks SET description = $1, due = $2, completed = $3 WHERE id = $4',
-            values: [task.description, task.due, task.completed, task.id]
+            text: 'UPDATE tasks SET description = $1, due = $2, completed = $3 WHERE id = $4 RETURNING *',
+            values: [task.description, task.due, task.completed, taskId]
         });
-        return getTask(task.id);
+        return formatTasks(rows)[0] || null;
     }
     return {
+        checkAccess,
         createTask,
         deleteTask,
         deleteTasks,
@@ -71,23 +115,31 @@ function formatTasks(rows) {
     const filesMap = {};
     const results = [];
     rows.forEach(row => {
-        const id = row.T.id;
-        const file = {
-            id: row.F.id,
-            name: row.F.name
+        const taskId = row.task_id;
+        const fileId = row.file_id;
+        const task = {
+            id: row.task_id,
+            description: row.description,
+            due: row.due,
+            completed: row.completed,
+            files: []
         };
-        if (filesMap[id]) {
-            filesMap[id].push(file);
+        if (fileId) {
+            const file = {
+                id: row.file_id,
+                name: row.file_name
+            };
+            if (filesMap[taskId]) {
+                filesMap[taskId].push(file);
+            }
+            else {
+                filesMap[taskId] = [file];
+                task.files = filesMap[taskId];
+                results.push(task);
+            }
         }
         else {
-            filesMap[id] = [file];
-            results.push({
-                id: row.T.id,
-                description: row.T.description,
-                due: row.T.due,
-                completed: row.T.completed,
-                files: filesMap[id]
-            });
+            results.push(task);
         }
     });
     return results;
