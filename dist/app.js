@@ -7,6 +7,7 @@ exports.getDefaultOptions = exports.AppFactory = void 0;
 const openapi_enforcer_1 = __importDefault(require("openapi-enforcer"));
 const dotenv_1 = require("dotenv");
 dotenv_1.config();
+const cors_1 = __importDefault(require("cors"));
 const express_1 = __importDefault(require("express"));
 const openapi_enforcer_middleware_1 = __importDefault(require("openapi-enforcer-middleware"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
@@ -32,6 +33,7 @@ function AppFactory(options) {
         }
     });
     const dbController = db_1.default(pool);
+    app.use(cors_1.default());
     app.use(express_1.default.json());
     app.use(async (req, res, next) => {
         if (req.headers.authorization) {
@@ -45,7 +47,7 @@ function AppFactory(options) {
                     };
                 }
                 catch (err) {
-                    return next(new util_1.StatusError('Invalid authorization token', 400));
+                    return next(new util_1.StatusError('Invalid authorization token', 403));
                 }
             }
         }
@@ -57,6 +59,14 @@ function AppFactory(options) {
     enforcerMiddleware.on('error', (err) => {
         console.error(err);
         process.exit(1);
+    });
+    app.use((req, res, next) => {
+        if (req.enforcer && req.enforcer.operation && req.enforcer.operation.security && !req.user) {
+            res.sendStatus(401);
+        }
+        else {
+            next();
+        }
     });
     const controllersPath = path_1.default.resolve(__dirname, 'api');
     const routeOptions = { dependencies: [dbController, options] };

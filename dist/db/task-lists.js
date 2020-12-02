@@ -27,9 +27,9 @@ function TaskListFactory(db, controller) {
     async function getTaskListDetails(taskListId) {
         const { rows } = await db.query({
             name: 'task-list-get',
-            text: `SELECT L.name, T.id, T.description, T.due, T.completed
-        FROM task_lists as L, tasks as T
-        WHERE L.id = $1 AND L.id = T.task_list_id`,
+            text: `SELECT L.name, L.account_id, T.id as "task_id", T.description, T.due, T.completed
+        FROM task_lists L LEFT JOIN tasks T ON L.id = T.task_list_id
+        WHERE L.id = $1`,
             values: [taskListId]
         });
         if (!rows.length)
@@ -38,7 +38,9 @@ function TaskListFactory(db, controller) {
             id: taskListId,
             accountId: rows[0].account_id,
             name: rows[0].name,
-            tasks: rows.map(r => {
+            tasks: rows
+                .filter(r => r.id !== undefined)
+                .map(r => {
                 return {
                     id: r.id,
                     description: r.description,

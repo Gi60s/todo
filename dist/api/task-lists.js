@@ -3,14 +3,14 @@ Object.defineProperty(exports, "__esModule", { value: true });
 function default_1(db) {
     return {
         async createTaskList(req, res) {
-            const { body } = req.enforcer.body;
+            const { body } = req.enforcer;
             const list = await db.taskLists.createTaskList(req.user.id, body.name);
             res.set('Location', '/task-lists/' + list.id);
             res.status(201);
             res.enforcer.send();
         },
         async deleteTaskList(req, res) {
-            const { params } = req.enforcer.params;
+            const { params } = req.enforcer;
             const { taskListId } = params;
             const list = await db.taskLists.getTaskListDetails(taskListId);
             if (!list) {
@@ -29,7 +29,7 @@ function default_1(db) {
             res.enforcer.send(lists);
         },
         async getTaskList(req, res) {
-            const { params, query } = req.enforcer.params;
+            const { params, query } = req.enforcer;
             const { taskListId } = params;
             const list = await db.taskLists.getTaskListDetails(taskListId);
             if (!list) {
