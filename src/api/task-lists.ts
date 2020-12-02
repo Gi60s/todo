@@ -4,7 +4,7 @@ import { DatabaseController } from "../db"
 export default function (db: DatabaseController) {
   return {
     async createTaskList (req: Express.Request, res: Express.Response) {
-      const { body } = req.enforcer.body
+      const { body } = req.enforcer
       const list = await db.taskLists.createTaskList(req.user.id, body.name)
 
       res.set('Location', '/task-lists/' + list.id)
@@ -13,7 +13,7 @@ export default function (db: DatabaseController) {
     },
 
     async deleteTaskList (req: Express.Request, res: Express.Response) {
-      const { params } = req.enforcer.params
+      const { params } = req.enforcer
       const { taskListId } = params
       
       const list = await db.taskLists.getTaskListDetails(taskListId)
@@ -33,7 +33,7 @@ export default function (db: DatabaseController) {
     },
 
     async getTaskList (req: Express.Request, res: Express.Response) {
-      const { params, query } = req.enforcer.params
+      const { params, query } = req.enforcer
       const { taskListId } = params
       
       const list = await db.taskLists.getTaskListDetails(taskListId)
