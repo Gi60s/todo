@@ -26,7 +26,15 @@
     - Custom middleware for auth
 1. Postman and testing
 1. Working session? Work on controllers and API endpoints?
-
+1. Setup Nuxt
+    - Typescript (https://typescript.nuxtjs.org/cookbook/components/)
+    - SPA
+    - Target: NodeJS
+    - Jest
+1. Stylus (https://medium.com/@aznric3boi91/using-stylus-with-vue-js-nuxt-js-99f786723801)
+    - npm install stylus stylus-loader -save-dev
+    - `<style lang="stylus" scoped> ... </style>`
+    
 
 Where to put:
 - Unit testing, integration testing, and E2E testing
