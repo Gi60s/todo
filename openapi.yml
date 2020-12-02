@@ -30,6 +30,8 @@ paths:
         - Accounts
       x-controller: accounts
       x-operation: getAccount
+      security:
+        - Bearer: []
       responses:
         200:
           description: Success
@@ -51,6 +53,8 @@ paths:
         - Accounts
       x-controller: accounts
       x-operation: updateAccount
+      security:
+        - Bearer: []
       requestBody:
         $ref: '#/components/requestBodies/Account'
       responses:
@@ -70,6 +74,8 @@ paths:
         - Accounts
       x-controller: accounts
       x-operation: deleteAccount
+      security:
+        - Bearer: []
       responses:
         204:
           description: Deleted
@@ -111,6 +117,8 @@ paths:
       x-operation: updateTask
       requestBody:
         $ref: '#/components/requestBodies/Task'
+      security:
+        - Bearer: []
       responses:
         200:
           description: Success
@@ -132,6 +140,8 @@ paths:
         - Tasks
       x-controller: tasks
       x-operation: deleteTask
+      security:
+        - Bearer: []
       responses:
         204:
           description: Success
@@ -150,6 +160,8 @@ paths:
         - Task Files
       x-controller: tasks
       x-operation: uploadFile
+      security:
+        - Bearer: []
       requestBody:
         content:
           application/octet-stream:
@@ -189,6 +201,8 @@ paths:
         - Task Files
       x-controller: tasks
       x-operation: getFile
+      security:
+        - Bearer: []
       responses:
         200:
           description: Success
@@ -215,6 +229,8 @@ paths:
         - Task Files
       x-controller: tasks
       x-operation: deleteFile
+      security:
+        - Bearer: []
       responses:
         204:
           description: Success
@@ -233,6 +249,8 @@ paths:
         - Task Lists
       x-controller: task-lists
       x-operation: getTaskLists
+      security:
+        - Bearer: []
       responses:
         200:
           description: Success
@@ -248,6 +266,8 @@ paths:
         - Task Lists
       x-controller: task-lists
       x-operation: createTaskList
+      security:
+        - Bearer: []
       requestBody:
         $ref: '#/components/requestBodies/TaskList'
       responses:
@@ -272,6 +292,8 @@ paths:
         - Task Lists
       x-controller: task-lists
       x-operation: getTaskList
+      security:
+        - Bearer: []
       parameters:
         - $ref: '#/components/parameters/QueryAllTasks'
       responses:
@@ -295,6 +317,8 @@ paths:
         - Task Lists
       x-controller: task-lists
       x-operation: updateTaskList
+      security:
+        - Bearer: []
       requestBody:
         $ref: '#/components/requestBodies/TaskList'
       responses:
@@ -315,6 +339,8 @@ paths:
         - Task Lists
       x-controller: task-lists
       x-operation: deleteTaskList
+      security:
+        - Bearer: []
       responses:
         204:
           description: Deleted
@@ -333,6 +359,8 @@ paths:
         - Tasks
       x-controller: tasks
       x-operation: getTasks
+      security:
+        - Bearer: []
       parameters:
         - $ref: '#/components/parameters/QueryAllTasks'
       responses:
@@ -358,6 +386,8 @@ paths:
         - Tasks
       x-controller: tasks
       x-operation: createTask
+      security:
+        - Bearer: []
       requestBody:
         $ref: '#/components/requestBodies/Task'
       responses:
@@ -484,3 +514,7 @@ components:
               type: array
               items:
                 $ref: "#/components/schemas/Task"
+  securitySchemes:
+    Bearer:
+      type: http
+      scheme: bearer

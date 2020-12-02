@@ -6,6 +6,7 @@ import { config } from 'dotenv'
 config()
 
 import { AddressInfo } from 'net'
+import cors from 'cors'
 import express from 'express'
 import { default as EnforcerMiddleware } from 'openapi-enforcer-middleware'
 import jwt from 'jsonwebtoken'
@@ -78,6 +79,9 @@ export function AppFactory (options?: AppOptions): AppObject {
   // Initialize database controller
   const dbController = DatabaseController(pool)
 
+  // Allow CORS
+  app.use(cors())
+
   // Parse any request bodies
   app.use(express.json())
 
@@ -93,7 +97,7 @@ export function AppFactory (options?: AppOptions): AppObject {
             username: decoded.username
           }
         } catch (err) {
-          return next(new StatusError('Invalid authorization token', 400))
+          return next(new StatusError('Invalid authorization token', 403))
         }
       }
     }
@@ -110,7 +114,16 @@ export function AppFactory (options?: AppOptions): AppObject {
   enforcerMiddleware.on('error', (err: Error) => {
     console.error(err)
     process.exit(1)
-  }) 
+  })
+
+  // If a path requires authorization then verify that the user is set
+  app.use((req, res, next) => {
+    if (req.enforcer && req.enforcer.operation && req.enforcer.operation.security && !req.user) {
+      res.sendStatus(401)
+    } else {
+      next()
+    }
+  })
 
   // Use route builder middleware
   const controllersPath = path.resolve(__dirname, 'api')
