@@ -52,9 +52,9 @@ export function TaskListFactory (db: Pool, controller: DatabaseController): Task
   async function getTaskListDetails (taskListId: string): Promise<TaskListDetailedObject|null> {
     const { rows } = await db.query({
       name: 'task-list-get',
-      text: `SELECT L.name, T.id, T.description, T.due, T.completed
-        FROM task_lists as L, tasks as T
-        WHERE L.id = $1 AND L.id = T.task_list_id`,
+      text: `SELECT L.name, L.account_id, T.id as "task_id", T.description, T.due, T.completed
+        FROM task_lists L LEFT JOIN tasks T ON L.id = T.task_list_id
+        WHERE L.id = $1`,
       values: [ taskListId ]
     })
 
@@ -64,14 +64,16 @@ export function TaskListFactory (db: Pool, controller: DatabaseController): Task
       id: taskListId,
       accountId: rows[0].account_id,
       name: rows[0].name,
-      tasks: rows.map(r => {
-        return {
-          id: r.id,
-          description: r.description,
-          due: r.due,
-          completed: r.completed
-        }
-      })
+      tasks: rows
+        .filter(r => r.id !== undefined)
+        .map(r => {
+          return {
+            id: r.id,
+            description: r.description,
+            due: r.due,
+            completed: r.completed
+          }
+        })
     }
   }
 
@@ -86,11 +88,19 @@ export function TaskListFactory (db: Pool, controller: DatabaseController): Task
   }
 
   async function deleteTaskList (taskListId: string): Promise<void> {
-    await db.query({
-      name: 'delete-task-list',
-      text: 'DELETE from task_lists WHERE id = $1',
-      values: [taskListId]
+    return controller.transaction(null, async client => {
+      const { rows } = await db.query({
+        name: 'delete-task-list',
+        text: 'DELETE from task_lists WHERE id = $1',
+        values: [taskListId]
+      })
+
+      const length = rows.length
+      for (let i = 0; i < length; i++) {
+        await controller.tasks.deleteTasks(client, rows[i].id)
+      }
     })
+    
   }
 
   async function deleteTaskLists (client: PoolClient, accountId: string): Promise<void> {
